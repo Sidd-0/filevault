@@ -1,0 +1,94 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories (remove the comment below to include it)
+vendor/
+
+# Go build artifacts
+backend/server
+backend/filevault
+
+# Node dependencies
+node_modules/
+frontend/node_modules/
+
+# Production builds
+frontend/build/
+frontend/dist/
+
+# Testing
+coverage/
+*.coverprofile
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads (but keep directory structure)
+uploads/*
+!uploads/.gitkeep
+
+# Database data
+postgres_data/
+*.db
+*.sqlite
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Docker
+*.dockerfile.swp
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Package files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar

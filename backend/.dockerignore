@@ -1,0 +1,19 @@
+# Ignore files
+*.md
+*.log
+.git
+.gitignore
+.env
+.DS_Store
+
+# Ignore build artifacts
+*.exe
+*.test
+*.out
+
+# Ignore uploads during build
+uploads/
+
+# Ignore documentation
+docs/
+README.md
