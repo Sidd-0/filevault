@@ -1,0 +1,36 @@
+name: filevault
+
+services:
+  - name: postgres
+    type: database
+    database_type: postgresql
+    version: 15
+    
+  - name: backend
+    type: web
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env:
+      - DATABASE_URL=${{postgres.connection_string}}
+      - PORT=8080
+    ports:
+      - port: 8080
+        protocol: http
+    regions:
+      - fra
+    instance_type: nano
+    
+  - name: frontend
+    type: web
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    env:
+      - REACT_APP_API_URL=https://${{backend.public_domain}}/api
+    ports:
+      - port: 80
+        protocol: http
+    regions:
+      - fra
+    instance_type: nano

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// API Base URL
-const APIBASE = "http://localhost:8080/api/";
+// API Base URL - works for both local and production
+const APIBASE = process.env.REACT_APP_API_URL || "http://localhost:8080/api/";
 
 // User ID from localStorage
 const getUserId = () => {

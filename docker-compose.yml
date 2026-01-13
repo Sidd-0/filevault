@@ -3,18 +3,17 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: filevault-db
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: filevault
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password123}
+      POSTGRES_DB: ${POSTGRES_DB:-filevault}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d filevault"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,12 +24,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: filevault-backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgres://admin:password123@postgres:5432/filevault?sslmode=disable}
+      PORT: ${PORT:-8080}
     ports:
       - "8080:8080"
-    environment:
-      DATABASE_URL: postgres://admin:password123@postgres:5432/filevault?sslmode=disable
-      PORT: 8080
     depends_on:
       postgres:
         condition: service_healthy
@@ -38,20 +36,19 @@ services:
       - ./uploads:/root/uploads
     networks:
       - filevault-network
-    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: filevault-frontend
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8080/api}
     ports:
       - "3000:80"
     depends_on:
       - backend
     networks:
       - filevault-network
-    restart: unless-stopped
 
 volumes:
   postgres_data:
