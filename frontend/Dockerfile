@@ -6,13 +6,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (changed from npm ci)
+# Install dependencies
 RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build the app
+# Accept build argument and set as environment variable
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
+# Build the app (now with the env var available)
 RUN npm run build
 
 # Production stage
