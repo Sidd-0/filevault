@@ -1,5 +1,0 @@
-#!/bin/bash
-echo "🚀 FileVault Starting..."
-cd backend && go run main.go upload.go list.go delete.go download.go share.go search.go stats.go ratelimit.go admin.go &
-cd ../frontend && npm start &
-wait
