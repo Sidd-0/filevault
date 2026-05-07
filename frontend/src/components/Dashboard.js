@@ -18,6 +18,7 @@ import UploadZone from "./UploadZone";
 import SearchBar from "./SearchBar";
 import FileGrid from "./FileGrid";
 import { PreviewModal, DetailsModal } from "./Modals";
+import ShareModal from "./ShareModal";
 
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
@@ -46,6 +47,7 @@ const Dashboard = () => {
     isOpen: false,
     file: null,
   });
+  const [shareModal, setShareModal] = useState({ isOpen: false, file: null });
   const [realTimeEnabled, setRealTimeEnabled] = useState(true);
 
   const loadFiles = useCallback(async () => {
@@ -145,6 +147,9 @@ const Dashboard = () => {
       await shareFile(file.id, newShareType);
       toast.success(`"${file.filename}" is now ${newShareType}`);
       loadFiles();
+      if (newShareType === "public") {
+        setShareModal({ isOpen: true, file: { ...file, is_public: true } });
+      }
     } catch (error) {
       toast.error("Share failed: " + error.message);
     } finally {
@@ -265,6 +270,12 @@ const Dashboard = () => {
         onClose={() => setDetailsModal({ isOpen: false, file: null })}
         onDownload={handleDownload}
         onPreview={handlePreview}
+      />
+
+      <ShareModal
+        isOpen={shareModal.isOpen}
+        file={shareModal.file}
+        onClose={() => setShareModal({ isOpen: false, file: null })}
       />
     </div>
   );
