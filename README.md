@@ -1,4 +1,4 @@
-# 🗄️ FileVault
+## 🗄️ FileVault
 
 **Secure file storage system with deduplication and advanced features**
 
