@@ -1,363 +1,223 @@
 # 🗄️ FileVault
 
-**Secure file storage system with deduplication and advanced features**
+**Secure file storage with deduplication, sharing, and a polished animated UI.**
 
-A full-stack web application for secure file storage, built with Go (backend), React (frontend), and PostgreSQL (database). Features include file deduplication, advanced search, real-time updates, and public/private file sharing.
+A full-stack web application built with **Go**, **React**, and **PostgreSQL**. Designed as a BalkanID-style file vault: SHA‑256 deduplication, per‑user quotas, rate limiting, public/private sharing with download counters, and a modern light/dark UI animated with Framer Motion.
 
-## 🌐 Live Deployment
-
-- **Frontend**: [https://filevault.up.railway.app/](https://filevault.up.railway.app/)
-- **Backend API**: [https://filevault-production-a0df.up.railway.app/](https://filevault-production-a0df.up.railway.app/)
-- **Database**: PostgreSQL (Railway)
-
-## ✨ Features
-
-### Core Functionality
-- 📤 **File Upload & Download** - Drag-and-drop interface with progress tracking
-- 🔍 **Advanced Search** - Search by filename, file type, size, and date range
-- 👁️ **File Preview** - In-browser preview for images, PDFs, and text files
-- 🔒 **Privacy Controls** - Toggle files between public and private
-- 📊 **Storage Analytics** - Real-time storage usage statistics
-- 🔄 **Real-time Updates** - Live file list updates without page refresh
-
-### Technical Features
-- 🗜️ **File Deduplication** - Saves storage by detecting identical files using SHA-256 hashing
-- 📈 **Upload Progress** - Real-time progress bars for file uploads
-- 🎯 **User Management** - Multi-user support with per-user storage quotas
-- 📝 **Audit Logging** - Complete activity tracking for compliance
-- 🚀 **RESTful API** - Clean API design for easy integration
-- 🐳 **Docker Ready** - Containerized deployment for easy scaling
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐
-│   React Frontend │ (Port 80)
-│   (Nginx)        │
-└────────┬────────┘
-         │
-         │ HTTPS/REST API
-         │
-┌────────▼────────┐
-│   Go Backend    │ (Port 8080)
-│   (Gin)         │
-└────────┬────────┘
-         │
-         │ PostgreSQL
-         │
-┌────────▼────────┐
-│   PostgreSQL    │ (Port 5432)
-│   Database      │
-└─────────────────┘
-```
-
-## 🛠️ Tech Stack
-
-### Backend
-- **Language**: Go 1.21+
-- **Framework**: Gin Web Framework
-- **Database**: PostgreSQL 17
-- **Libraries**:
-  - `github.com/lib/pq` - PostgreSQL driver
-  - `crypto/sha256` - File hashing
-  - `mime/multipart` - File handling
-
-### Frontend
-- **Framework**: React 18
-- **Build Tool**: Create React App
-- **UI Components**:
-  - `react-dropzone` - Drag & drop uploads
-  - `react-modal` - Modal dialogs
-  - `axios` - HTTP client
-- **Styling**: Custom CSS with responsive design
-
-### Infrastructure
-- **Hosting**: Railway
-- **Container**: Docker with multi-stage builds
-- **Web Server**: Nginx (frontend)
-- **CI/CD**: GitHub integration with Railway
-
-## 📁 Project Structure
-
-```
-filevault/
-├── backend/              # Go backend application
-│   ├── main.go          # Entry point
-│   ├── handlers/        # HTTP handlers
-│   ├── models/          # Data models
-│   └── utils/           # Utility functions
-├── frontend/            # React frontend application
-│   ├── src/
-│   │   ├── App.js      # Main component
-│   │   ├── api.js      # API client
-│   │   └── App.css     # Styles
-│   ├── Dockerfile      # Frontend container
-│   └── nginx.conf      # Nginx configuration
-├── database/            # Database schemas
-│   └── schema.sql      # PostgreSQL schema
-├── docs/               # Documentation
-├── uploads/            # Local file storage (dev)
-└── docker-compose.yml  # Local development setup
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Go 1.21 or higher
-- Node.js 18 or higher
-- PostgreSQL 15+ (or Docker)
-- Git
-
-### Local Development
-
-1. **Clone the repository**
-```bash
-git clone https://github.com/Sidd-0/filevault.git
-cd filevault
-```
-
-2. **Set up the database**
-```bash
-# Create PostgreSQL database
-createdb filevault
-
-# Run schema
-psql filevault < database/schema.sql
-```
-
-3. **Configure environment variables**
-```bash
-# Create .env file in root
-cp .env.example .env
-
-# Edit .env with your settings:
-DATABASE_URL=postgresql://user:password@localhost:5432/filevault
-PORT=8080
-```
-
-4. **Start the backend**
-```bash
-cd backend
-go mod download
-go run main.go
-```
-
-5. **Start the frontend**
-```bash
-cd frontend
-npm install
-npm start
-```
-
-6. **Access the application**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080
-
-### Using Docker Compose
-
-```bash
-# Build and start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-## 📊 Database Schema
-
-### Tables
-
-**users** - User accounts and storage quotas
-```sql
-- id (SERIAL PRIMARY KEY)
-- username (VARCHAR UNIQUE)
-- email (VARCHAR UNIQUE)
-- password_hash (VARCHAR)
-- role (VARCHAR) - 'user' or 'admin'
-- storage_quota_bytes (BIGINT)
-- storage_used_bytes (BIGINT)
-```
-
-**blobs** - Deduplicated file storage
-```sql
-- hash (VARCHAR PRIMARY KEY) - SHA-256 hash
-- size_bytes (BIGINT)
-- storage_path (VARCHAR)
-- reference_count (INTEGER)
-```
-
-**files** - File metadata
-```sql
-- id (SERIAL PRIMARY KEY)
-- user_id (INTEGER FK → users)
-- blob_hash (VARCHAR FK → blobs)
-- filename (VARCHAR)
-- mime_type (VARCHAR)
-- is_public (BOOLEAN)
-- download_count (INTEGER)
-```
-
-**file_shares** - Sharing configuration
-```sql
-- id (SERIAL PRIMARY KEY)
-- file_id (INTEGER FK → files)
-- share_type (VARCHAR) - 'public' or 'private'
-- share_link (VARCHAR UNIQUE)
-```
-
-**audit_logs** - Activity tracking
-```sql
-- id (SERIAL PRIMARY KEY)
-- user_id (INTEGER FK → users)
-- action (VARCHAR)
-- details (JSONB)
-- ip_address (VARCHAR)
-```
-
-## 🔌 API Endpoints
-
-### Files
-- `GET /api/files?user_id={id}` - List user's files
-- `POST /api/files?user_id={id}` - Upload file(s)
-- `GET /api/files/{id}/download` - Download file
-- `DELETE /api/files/{id}` - Delete file
-- `GET /api/files/{id}/info` - Get file metadata
-
-### Search
-- `GET /api/search?q={query}&user_id={id}` - Search files
-  - Query params: `mime_type`, `min_size`, `max_size`, `date_from`, `date_to`
-
-### Sharing
-- `POST /api/files/{id}/share` - Update file sharing settings
-  - Body: `{"share_type": "public"|"private"}`
-
-### Statistics
-- `GET /api/stats?user_id={id}` - Get user storage statistics
-
-### Health
-- `GET /health` - Health check endpoint
-
-## 🎯 Key Features Explained
-
-### File Deduplication
-FileVault uses SHA-256 hashing to detect duplicate files. When a file is uploaded:
-1. Calculate SHA-256 hash of the file content
-2. Check if blob with this hash exists in database
-3. If exists, create new file record pointing to existing blob
-4. If new, store file and create new blob record
-5. Track reference count for garbage collection
-
-### Storage Quotas
-Each user has a storage quota enforced by the system:
-- Default: 10 MB for regular users
-- Admin: 100 MB
-- Tracks actual storage used (after deduplication)
-- Prevents uploads exceeding quota
-
-### Real-time Updates
-Frontend polls the backend every 10 seconds for:
-- New file uploads
-- File deletions
-- Storage statistics updates
-- Can be toggled on/off by user
-
-## 🔒 Security Features
-
-- ✅ User authentication (X-User-ID header)
-- ✅ File access control (public/private)
-- ✅ CORS configuration for frontend
-- ✅ Input validation and sanitization
-- ✅ Secure file storage with hash-based naming
-- ✅ Audit logging for all actions
-
-## 🚢 Deployment
-
-### Railway Deployment
-
-This project is deployed on Railway with three services:
-
-1. **Backend (Go)**
-   - Environment: `DATABASE_URL`, `PORT`
-   - Build: `go build -o main`
-   - Start: `./main`
-
-2. **Frontend (React + Nginx)**
-   - Build arg: `REACT_APP_API_URL`
-   - Multi-stage Docker build
-   - Nginx serves static files
-
-3. **PostgreSQL Database**
-   - Persistent volume storage
-   - Automatic backups
-
-### Environment Variables
-
-**Backend:**
-```env
-DATABASE_URL=postgresql://user:pass@host:port/db
-PORT=8080
-```
-
-**Frontend:**
-```env
-REACT_APP_API_URL=https://your-backend.railway.app/api
-```
-
-## 📈 Performance
-
-- **File Upload**: Streaming upload with progress tracking
-- **Deduplication**: O(1) lookup using hash index
-- **Search**: Optimized with database indexes on common fields
-- **Caching**: Nginx caching for static assets (1 year)
-- **Compression**: Gzip enabled for text files
-
-## 🧪 Testing
-
-```bash
-# Backend tests
-cd backend
-go test ./...
-
-# Frontend tests
-cd frontend
-npm test
-
-# Integration tests
-npm run test:e2e
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Authors
-
-- **Siddhant Purohit** - [@Sidd-0](https://github.com/Sidd-0)
-
-## 🙏 Acknowledgments
-
-- Railway for hosting infrastructure
-- Go community for excellent libraries
-- React team for the frontend framework
-- PostgreSQL for reliable database
-
-## 📞 Support
-
-For support, email siddhantpurohit001@gmail.com or open an issue on GitHub.
+> Status: working end‑to‑end. The login/logout flow on the UI is a client‑side mock (stored in `localStorage`); the backend currently identifies users via the `X-User-ID` header. Real JWT auth is the next step (tracked as an issue).
 
 ---
 
-**Built with ❤️ using Go, React, and PostgreSQL**
+## ✨ Features
+
+### Storage & Files
+- **SHA‑256 deduplication** — identical content is stored once; references are counted, and the underlying blob is only deleted when the last reference is gone.
+- **Multi‑file uploads** with drag & drop and per‑file progress bars.
+- **MIME validation** against the file extension on upload.
+- **Per‑user storage quota** (default 10 MB, configurable per user).
+- **Per‑user rate limit** (default 2 req/sec, configurable).
+- **Storage stats** — used vs. limit, percentage, dedup savings.
+
+### Sharing & Discovery
+- **Public / private toggle** per file with a shareable link.
+- **Download counters** on public files.
+- **Search & filters** — by filename, MIME type, size range, date range. Filters compose.
+- **Real‑time updates** via 10 s polling (toggle in the UI).
+- **File previews** for images, PDFs, and text.
+
+### Admin
+- `/api/admin/stats` — total users, files, storage, downloads, public files.
+- `/api/admin/files` — every file with uploader info.
+
+### UI / UX
+- Two‑font typography: **Space Grotesk** (display) + **Inter** (body), JetBrains Mono for hashes.
+- **Light & dark themes** — respects `prefers-color-scheme`, toggle persists in `localStorage`.
+- **Framer Motion** animations: orb backgrounds, animated tab pill, file‑card hovers, modal entrances, upload spinner.
+- **Lucide icons** throughout.
+- **Glass‑morphism** card surfaces over a soft animated gradient.
+- Toast notifications (`react-hot-toast`).
+
+---
+
+## 🧱 Tech Stack
+
+| Layer | Tech |
+|---|---|
+| Backend | Go 1.21, [chi](https://github.com/go-chi/chi) router, [pgx](https://github.com/jackc/pgx) driver, [rs/cors](https://github.com/rs/cors) |
+| Frontend | React 18, Framer Motion, Lucide React, react‑dropzone, react‑hot‑toast, axios |
+| Database | PostgreSQL 15 |
+| Container | Docker, Docker Compose |
+
+---
+
+## 📁 Project Layout
+
+```
+filevault/
+├── backend/                  # Go REST API
+│   ├── main.go               # router, CORS, graceful shutdown
+│   ├── upload.go             # SHA-256 dedup + multi-file upload
+│   ├── list.go / search.go   # listing + composable filters
+│   ├── share.go / public.go  # public/private + share links
+│   ├── delete.go             # ref-count aware delete
+│   ├── download.go           # streamed download + counter
+│   ├── stats.go / admin.go   # user + global + admin stats
+│   ├── ratelimit.go          # per-user token bucket
+│   └── Dockerfile
+├── frontend/                 # React SPA
+│   ├── src/
+│   │   ├── App.js            # auth gate, theme + toast providers
+│   │   ├── components/       # Login, Navbar, Dashboard, StatsPanel,
+│   │   │                     # UploadZone, SearchBar, FileGrid, Modals
+│   │   ├── contexts/         # AuthContext, ThemeContext
+│   │   ├── api.js            # axios client
+│   │   └── App.css / index.css
+│   └── Dockerfile
+├── database/
+│   └── schema.sql            # users, blobs, files, file_shares, audit_logs
+├── docs/
+│   ├── API.md                # endpoint reference
+│   └── ARCHITECTURE.md       # design writeup
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## 🚀 Run It
+
+### Option A — Docker Compose (recommended)
+
+```bash
+git clone https://github.com/Shishir2405/filevault-fork.git
+cd filevault-fork
+docker-compose up --build
+```
+
+Then open:
+- Frontend → <http://localhost:3000>
+- Backend  → <http://localhost:8080>
+- Postgres → `localhost:5432` (user `admin`, password `password123`, db `filevault`)
+
+### Option B — Local dev (without Docker)
+
+**Prereqs**: Go ≥ 1.21, Node ≥ 18, PostgreSQL ≥ 13.
+
+```bash
+# 1. Database
+createdb filevault
+psql filevault < database/schema.sql
+
+# 2. Backend
+cd backend
+export DATABASE_URL="postgres://admin:password123@localhost:5432/filevault?sslmode=disable"
+go run .                         # listens on :8080
+
+# 3. Frontend (new terminal)
+cd frontend
+npm install
+npm start                        # opens http://localhost:3000
+```
+
+The default seed includes two users: `testuser` (id 1) and `admin` (id 2). The frontend `AuthContext` uses a client‑side username/password registry stored in `localStorage`, so any username/password you sign up with works locally.
+
+---
+
+## 🗃️ Database Schema (high level)
+
+```
+users        ── id, username, email, role, storage_quota_bytes, storage_used_bytes
+blobs        ── hash (PK), size_bytes, storage_path, reference_count
+files        ── id, user_id → users, blob_hash → blobs, filename, mime_type,
+                size_bytes, is_public, download_count
+file_shares  ── id, file_id → files, share_type, share_link
+audit_logs   ── id, user_id, file_id, action, details (jsonb), ip_address
+```
+
+Key idea: a **file** is a per‑user *reference* to a deduplicated **blob**. When a duplicate hash arrives, only the `reference_count` on the existing blob is bumped — no extra disk used. Deletes decrement the count and only purge the physical file when it hits zero.
+
+---
+
+## 🌐 API (REST)
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/files?user_id=…` | Upload one or more files (multipart, field `files`) |
+| GET  | `/api/files?user_id=…` | List a user's files |
+| GET  | `/api/files/{id}/download` | Download (increments counter) |
+| GET  | `/api/files/{id}/info` | File metadata + permission check |
+| DELETE | `/api/files/{id}` | Delete (refcount aware) |
+| POST | `/api/files/{id}/share` | Body `{"share_type":"public"\|"private"}` |
+| GET  | `/api/files/public` | List all public files |
+| GET  | `/api/search?user_id=…&q=…&mime_type=…&min_size=…&max_size=…&date_from=…&date_to=…` | Composed search |
+| GET  | `/api/stats` | Per‑user storage stats |
+| GET  | `/api/stats/global` | Global stats |
+| GET  | `/api/admin/stats` | Admin dashboard (header `X-User-ID: admin`) |
+| GET  | `/api/admin/files` | Admin file listing |
+| GET  | `/api/users` | List users |
+| GET  | `/health` | Liveness check |
+
+Identity: every request that touches user‑scoped data sends `X-User-ID: <id>` in the header (or `?user_id=` for upload/list). The frontend pulls this from the logged‑in user in `AuthContext`.
+
+---
+
+## 🧠 Architecture Notes
+
+```
+┌───────────────────────┐  HTTPS   ┌─────────────────────┐  pgx  ┌──────────────┐
+│  React SPA            │ ───────▶ │  Go (chi + cors)    │ ────▶ │  PostgreSQL  │
+│  Framer Motion + UI   │          │  Rate limiter       │       │  schema.sql  │
+└──────────┬────────────┘          │  SHA‑256 dedup      │       └──────────────┘
+           │                       │  MIME validation    │
+           │                       │  File serving       │
+           │                       └──────────┬──────────┘
+           │                                  │
+           ▼                                  ▼
+   localStorage (theme,                 ./uploads/<hash>
+   auth profile, JWT‑ready)             (deduplicated blob store)
+```
+
+- **Stateless backend** — all state lives in Postgres + the on‑disk blob store; safe to scale horizontally if the blob store is moved to S3/GCS.
+- **Polling for "real‑time"** — simple, robust, no socket plumbing. Easy upgrade path to SSE.
+- **Refcount‑aware deletes** — the only correct way to mix dedup with per‑user delete semantics.
+- **Frontend is a single page app** with React Context providers (`AuthProvider`, `ThemeProvider`) wrapping the app. Auth gate switches between `<Login/>` and `<Dashboard/>`.
+
+More detail: see [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+---
+
+## 🗺️ Roadmap (what would come next)
+
+These are the spec items not yet shipped — tracked for the next iteration:
+
+- **Real auth**: replace the `X-User-ID` header with JWT‑based login. Backend issue: see [Sidd-0/filevault#2](https://github.com/Sidd-0/filevault/issues/2).
+- **Tags** + search by tag and by uploader name.
+- **Folders** for organising files.
+- **Share with specific users** (not just public/private).
+- **MIME content sniffing** (reject mismatches via `http.DetectContentType`, not just extension).
+- **Audit log writes** — the table exists; populate it from upload/download/delete/share.
+- **GraphQL** layer alongside REST.
+- **TypeScript** migration on the frontend.
+- **Kubernetes manifests** in `k8s/` and a GitHub Actions CI pipeline.
+
+---
+
+## 🧪 Quick smoke test
+
+```bash
+# upload a file as user 1
+curl -F files=@/path/to/file.png \
+     "http://localhost:8080/api/files?user_id=1"
+
+# list
+curl -H "X-User-ID: 1" http://localhost:8080/api/files?user_id=1
+
+# storage stats
+curl -H "X-User-ID: 1" http://localhost:8080/api/stats
+```
+
+---
+
+## 🪪 License
+
+MIT — see [LICENSE](LICENSE).
