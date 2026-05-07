@@ -278,7 +278,7 @@ export const subscribeToUpdates = (callback, interval = 5000) => {
   return () => clearInterval(intervalId);
 };
 
-export default {
+const api = {
   getUserStats,
   listFiles,
   uploadFile,
@@ -296,3 +296,5 @@ export default {
   canPreviewFile,
   setAuthToken,
 };
+
+export default api;

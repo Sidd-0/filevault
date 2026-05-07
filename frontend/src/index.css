@@ -1,13 +1,117 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ============ Theme tokens ============ */
+:root {
+  --font-display: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* light theme defaults */
+  --bg-1: #f5f6fb;
+  --bg-2: #eceefc;
+  --surface-1: rgba(255, 255, 255, 0.78);
+  --surface-2: rgba(255, 255, 255, 0.92);
+  --surface-3: #ffffff;
+  --border: rgba(20, 20, 50, 0.08);
+  --border-strong: rgba(20, 20, 50, 0.16);
+  --text-1: #1a1a2e;
+  --text-2: #5b5b7a;
+  --text-3: #8a8aa8;
+
+  --accent-1: #6366f1; /* indigo */
+  --accent-2: #10b981; /* emerald */
+  --accent-3: #ec4899; /* pink */
+  --accent-4: #f59e0b; /* amber */
+
+  --shadow-sm: 0 2px 8px rgba(20, 20, 50, 0.06);
+  --shadow-md: 0 8px 24px rgba(20, 20, 50, 0.08);
+  --shadow-lg: 0 24px 60px rgba(20, 20, 50, 0.12);
+
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+[data-theme="dark"] {
+  --bg-1: #0a0a1a;
+  --bg-2: #14142b;
+  --surface-1: rgba(28, 28, 50, 0.55);
+  --surface-2: rgba(28, 28, 50, 0.78);
+  --surface-3: #1c1c32;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --text-1: #f3f4ff;
+  --text-2: #a8a8c4;
+  --text-3: #6e6e8a;
+
+  --accent-1: #818cf8;
+  --accent-2: #34d399;
+  --accent-3: #f472b6;
+  --accent-4: #fbbf24;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.6);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-1);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background 0.4s ease, color 0.3s ease;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--text-1);
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+
+code,
+.mono {
+  font-family: "JetBrains Mono", source-code-pro, Menlo, Monaco, Consolas, monospace;
 }
