@@ -80,6 +80,7 @@ func main() {
 	r.Get("/api/stats/global", GetGlobalStats)
 	r.Get("/api/admin/stats", AdminStatsHandler)
 	r.Get("/api/admin/files", AdminListFilesHandler)
+	r.Get("/api/audit", ListAuditLogs)
 
 	// Server configuration
 	port := os.Getenv("PORT")

@@ -11,6 +11,8 @@ import {
   getFilePreview,
   subscribeToUpdates,
   canPreviewFile,
+  getAuditLogs,
+  formatBytes,
 } from "../api";
 import Navbar from "./Navbar";
 import StatsPanel from "./StatsPanel";
@@ -19,6 +21,7 @@ import SearchBar from "./SearchBar";
 import FileGrid from "./FileGrid";
 import { PreviewModal, DetailsModal } from "./Modals";
 import ShareModal from "./ShareModal";
+import RecentActivity from "./RecentActivity";
 
 const Dashboard = () => {
   const [files, setFiles] = useState([]);
@@ -49,6 +52,7 @@ const Dashboard = () => {
   });
   const [shareModal, setShareModal] = useState({ isOpen: false, file: null });
   const [realTimeEnabled, setRealTimeEnabled] = useState(true);
+  const [activity, setActivity] = useState([]);
 
   const loadFiles = useCallback(async () => {
     try {
@@ -68,10 +72,16 @@ const Dashboard = () => {
     }
   }, []);
 
+  const loadActivity = useCallback(async () => {
+    const data = await getAuditLogs(15);
+    setActivity(Array.isArray(data) ? data : []);
+  }, []);
+
   useEffect(() => {
     loadFiles();
     loadStats();
-  }, [loadFiles, loadStats]);
+    loadActivity();
+  }, [loadFiles, loadStats, loadActivity]);
 
   useEffect(() => {
     if (!realTimeEnabled) return;
@@ -100,9 +110,26 @@ const Dashboard = () => {
         }
       );
       if (results.length > 0) {
-        toast.success(`Uploaded ${results.length} file(s)`);
+        // Backend returns an array per upload; flatten and surface dedup info.
+        const flat = results.flatMap((r) => (Array.isArray(r) ? r : [r]));
+        const dedupCount = flat.filter((f) => f?.deduplicated).length;
+        const bytesSaved = flat.reduce(
+          (sum, f) => sum + (f?.bytes_saved || 0),
+          0
+        );
+        if (dedupCount > 0) {
+          toast.success(
+            `Uploaded ${flat.length} file(s) — ♻️ ${dedupCount} deduplicated, saved ${formatBytes(
+              bytesSaved
+            )}`,
+            { duration: 4500 }
+          );
+        } else {
+          toast.success(`Uploaded ${flat.length} file(s)`);
+        }
         loadFiles();
         loadStats();
+        loadActivity();
       }
       if (errors.length > 0) {
         toast.error(`${errors.length} file(s) failed to upload`);
@@ -123,6 +150,7 @@ const Dashboard = () => {
       toast.success(`Deleted "${file.filename}"`);
       loadFiles();
       loadStats();
+      loadActivity();
     } catch (error) {
       toast.error("Delete failed: " + error.message);
     } finally {
@@ -134,7 +162,10 @@ const Dashboard = () => {
     try {
       await downloadFile(file.id, file.filename);
       toast.success(`Downloaded "${file.filename}"`);
-      setTimeout(loadFiles, 1000);
+      setTimeout(() => {
+        loadFiles();
+        loadActivity();
+      }, 800);
     } catch (error) {
       toast.error("Download failed: " + error.message);
     }
@@ -147,6 +178,7 @@ const Dashboard = () => {
       await shareFile(file.id, newShareType);
       toast.success(`"${file.filename}" is now ${newShareType}`);
       loadFiles();
+      loadActivity();
       if (newShareType === "public") {
         setShareModal({ isOpen: true, file: { ...file, is_public: true } });
       }
@@ -225,6 +257,8 @@ const Dashboard = () => {
           uploadProgress={uploadProgress}
           onFiles={handleUpload}
         />
+
+        <RecentActivity entries={activity} />
 
         <SearchBar
           searchQuery={searchQuery}

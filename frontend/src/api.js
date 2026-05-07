@@ -261,6 +261,19 @@ export const shareFile = async (fileId, shareType) => {
   }
 };
 
+// Audit logs (recent activity)
+export const getAuditLogs = async (limit = 20) => {
+  try {
+    const response = await apiClient.get(
+      `audit?user_id=${getUserId()}&limit=${limit}`
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error("Audit logs error:", error);
+    return [];
+  }
+};
+
 // Real-time updates (polling)
 export const subscribeToUpdates = (callback, interval = 5000) => {
   const pollUpdates = async () => {
