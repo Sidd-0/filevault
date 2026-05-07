@@ -16,11 +16,13 @@ import (
 
 // UploadResponse - What we send back after upload
 type UploadResponse struct {
-	ID       int    `json:"id"`
-	Filename string `json:"filename"`
-	Hash     string `json:"hash"`
-	Size     int64  `json:"size_bytes"`
-	Message  string `json:"message"`
+	ID           int    `json:"id"`
+	Filename     string `json:"filename"`
+	Hash         string `json:"hash"`
+	Size         int64  `json:"size_bytes"`
+	Deduplicated bool   `json:"deduplicated"`
+	BytesSaved   int64  `json:"bytes_saved"`
+	Message      string `json:"message"`
 }
 
 // UploadFilesHandler - POST /api/files
@@ -116,14 +118,27 @@ func UploadFilesHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		// Step 9: Add to results
+		// Step 9: Add to results, with dedup info so the frontend can surface it
+		var bytesSaved int64
+		if blobExists {
+			bytesSaved = fileSize
+		}
 		results = append(results, UploadResponse{
-			ID:       fileID,
-			Filename: fileHeader.Filename,
-			Hash:     hash,
-			Size:     fileSize,
-			Message:  "Upload successful",
+			ID:           fileID,
+			Filename:     fileHeader.Filename,
+			Hash:         hash,
+			Size:         fileSize,
+			Deduplicated: blobExists,
+			BytesSaved:   bytesSaved,
+			Message:      "Upload successful",
 		})
+
+		// Step 10: Audit log — fire and forget; failures here shouldn't fail the upload.
+		_, _ = db.Exec(
+			`INSERT INTO audit_logs (user_id, file_id, action, details, ip_address)
+			 VALUES ($1, $2, 'upload', jsonb_build_object('filename', $3::text, 'size_bytes', $4::bigint, 'deduplicated', $5::boolean), $6)`,
+			userID, fileID, fileHeader.Filename, fileSize, blobExists, r.RemoteAddr,
+		)
 	}
 
 	// Step 10: Return results as JSON

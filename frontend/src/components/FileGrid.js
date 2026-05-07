@@ -15,6 +15,7 @@ import {
   Globe,
   Lock,
   Inbox,
+  Recycle,
 } from "lucide-react";
 import { formatBytes, formatDate, canPreviewFile } from "../api";
 
@@ -99,8 +100,18 @@ const FileCard = ({
 
       <div className="file-meta-secondary">
         <span className="mime-tag">{file.mime_type || "unknown"}</span>
-        <span className="dl-count">
-          <Download size={11} /> {file.download_count || 0}
+        <span className="meta-end">
+          {file.ref_count > 1 && (
+            <span
+              className="dedup-badge"
+              title={`Blob shared by ${file.ref_count} files (deduplicated)`}
+            >
+              <Recycle size={11} /> ×{file.ref_count}
+            </span>
+          )}
+          <span className="dl-count">
+            <Download size={11} /> {file.download_count || 0}
+          </span>
         </span>
       </div>
 

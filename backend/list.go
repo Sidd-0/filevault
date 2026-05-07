@@ -20,7 +20,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	query := `
-		SELECT 
+		SELECT
 			f.id,
 			f.filename,
 			f.blob_hash,
@@ -28,7 +28,8 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 			f.mime_type,
 			f.is_public,
 			f.created_at,
-			f.download_count
+			f.download_count,
+			b.reference_count
 		FROM files f
 		INNER JOIN blobs b ON f.blob_hash = b.hash
 		WHERE f.user_id = $1
@@ -52,6 +53,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 		IsPublic      bool   `json:"is_public"`
 		CreatedAt     string `json:"created_at"`
 		DownloadCount int    `json:"download_count"`
+		RefCount      int    `json:"ref_count"`
 	}
 
 	var files []FileResponse
@@ -66,6 +68,7 @@ func ListFilesHandler(w http.ResponseWriter, r *http.Request) {
 			&f.IsPublic,
 			&f.CreatedAt,
 			&f.DownloadCount,
+			&f.RefCount,
 		)
 		if err != nil {
 			log.Printf("âŒ Scan error: %v", err)

@@ -93,6 +93,13 @@ func DownloadFile(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", fileSize))
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, safeFileName))
 
+	// Audit log (best-effort; ignore errors so the download still serves)
+	_, _ = db.Exec(
+		`INSERT INTO audit_logs (user_id, file_id, action, details, ip_address)
+		 VALUES (NULLIF($1, '')::int, $2, 'download', jsonb_build_object('filename', $3::text, 'size_bytes', $4::bigint), $5)`,
+		userID, fileID, fileName, fileSize, r.RemoteAddr,
+	)
+
 	// Step 7: Serve file
 	http.ServeFile(w, r, fullPath)
 	log.Printf("âœ… FILE SERVED: %s (%d bytes)", fileName, fileSize)

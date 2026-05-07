@@ -90,6 +90,13 @@ func DeleteFileHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("âœ… Deleted file ID %d (blob still has %d references)\n", fileID, refCount)
 	}
 
+	// Audit log
+	_, _ = db.Exec(
+		`INSERT INTO audit_logs (user_id, file_id, action, details, ip_address)
+		 VALUES ($1, $2, 'delete', jsonb_build_object('blob_hash', $3::text, 'remaining_refs', $4::int), $5)`,
+		userID, fileID, blobHash, refCount, r.RemoteAddr,
+	)
+
 	// Step 7: Return success
 	w.Header().Set("Content-Type", "application/json")
 	fmt.Fprint(w, `{"message":"File deleted successfully"}`)
